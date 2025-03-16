@@ -4,11 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.springframework.samples</groupId>
-    <artifactId>spring-petclinic-rest</artifactId>
-    <version>3.4.3</version>
+    <artifactId>system-rest</artifactId>
+    <version>1.0.0</version>
 
-    <description>REST version of the Spring Petclinic sample application</description>
-    <url>https://spring-petclinic.github.io/</url>
+    <description>REST version of the System application</description>
+    <url>https://github.com/yourusername/system-rest</url>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -46,7 +46,7 @@
         <docker.image.prefix>springcommunity</docker.image.prefix>
 
         <!-- SonarQube configuration -->
-        <sonar.organization>spring-petclinic-rest</sonar.organization>
+        <sonar.organization>system-rest</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
 
     </properties>
@@ -278,8 +278,8 @@
                 <configuration>
                     <excludes>
                         <!-- Generated code -->
-                        <exclude>**/org/springframework/samples/petclinic/rest/dto/**</exclude>
-                        <exclude>**/org/springframework/samples/petclinic/rest/api/**</exclude>
+                        <exclude>**/org/springframework/samples/system/rest/dto/**</exclude>
+                        <exclude>**/org/springframework/samples/system/rest/api/**</exclude>
                     </excludes>
                 </configuration>
                 <executions>
@@ -363,16 +363,16 @@
 
                             <!-- Only enabling model andopenapi-generator-maven-plugin API generation -->
                             <modelNameSuffix>Dto</modelNameSuffix>
-                            <apiPackage>org.springframework.samples.petclinic.rest.api</apiPackage>
+                            <apiPackage>org.springframework.samples.system.rest.api</apiPackage>
                             <generateModels>true</generateModels>
-                            <modelPackage>org.springframework.samples.petclinic.rest.dto</modelPackage>
+                            <modelPackage>org.springframework.samples.system.rest.dto</modelPackage>
                             <!--
                             <generateSupportingFiles>true</generateSupportingFiles>
                             <supportingFilesToGenerate>ApiUtil.java</supportingFilesToGenerate>
                             -->
                             <generateApis>true</generateApis>
                             <configOptions>
-                                <!-- RestController implementation is provided by Petclinic developers -->
+                                <!-- RestController implementation is provided by System developers -->
                                 <interfaceOnly>true</interfaceOnly>
                                 <!-- Activating Java 8 features -->
                                 <performBeanValidation>true</performBeanValidation>
