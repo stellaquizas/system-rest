@@ -1,0 +1,87 @@
+stages:
+  - test
+  - build
+  - deploy-dev
+  - deploy-staging
+  - deploy-production
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+
+cache:
+  paths:
+    - .m2/repository
+
+test:
+  stage: test
+  image: eclipse-temurin:17-jdk
+  script:
+    - ./mvnw test
+  artifacts:
+    reports:
+      junit: target/surefire-reports/TEST-*.xml
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH =~ /^release\/.*/ || $CI_COMMIT_BRANCH =~ /^feature\/.*/ || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+
+build:
+  stage: build
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  script:
+    - ./mvnw package -DskipTests
+    - |
+      if [[ $CI_COMMIT_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        VERSION=${CI_COMMIT_TAG#v}
+      elif [[ $CI_COMMIT_BRANCH =~ ^release/([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+        VERSION=${BASH_REMATCH[1]}-RC
+      elif [[ $CI_COMMIT_BRANCH == "develop" ]]; then
+        VERSION=develop
+      else
+        VERSION=latest
+      fi
+    - docker build -t $CI_REGISTRY_IMAGE:$VERSION -t $CI_REGISTRY_IMAGE:latest .
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker push $CI_REGISTRY_IMAGE:$VERSION
+    - docker push $CI_REGISTRY_IMAGE:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH =~ /^release\/.*/ || $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
+
+deploy-dev:
+  stage: deploy-dev
+  image: alpine:latest
+  script:
+    - echo "Deploying backend to development environment..."
+    # In a real scenario, you would add deployment steps here
+  environment:
+    name: development
+    url: https://api-dev.yourdomain.com
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+
+deploy-staging:
+  stage: deploy-staging
+  image: alpine:latest
+  script:
+    - echo "Deploying backend to staging environment..."
+    # In a real scenario, you would add deployment steps here
+  environment:
+    name: staging
+    url: https://api-staging.yourdomain.com
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^release\/.*/
+
+deploy-production:
+  stage: deploy-production
+  image: alpine:latest
+  script:
+    - echo "Deploying backend to production environment..."
+    # In a real scenario, you would add deployment steps here
+  environment:
+    name: production
+    url: https://api.yourdomain.com
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
